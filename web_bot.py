@@ -1,9 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-import concurrent.futures
+import queue
+from threading import Thread
 
 
-def current_price_crawler(symbol):
+def crawler(symbol):
     url = f"https://finance.yahoo.com/quote/{symbol}"
     try:
         page = requests.get(url)
@@ -19,7 +20,9 @@ def current_price_crawler(symbol):
 
     soup = BeautifulSoup(page.content, "lxml")
     quote_info = soup.find("div", attrs={"id": "quote-header-info"})
-    price = quote_info.find("span", attrs={"data-reactid": "50"}).text
+    price = quote_info.find(
+        "span", {"class": "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}
+    ).text
     price = price.replace(",", "")
     return float(price)
 
@@ -30,12 +33,22 @@ def current_price_fetcher(stocks):
     Input: A list of stocks
     Output: A list of stocks' current prices (Integer)
     """
+    threads = []
     prices = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for stock in stocks:
-            future = executor.submit(current_price_crawler, stock)
-            prices.append(future.result())
-    print(prices)
+    que = queue.Queue()
+    for stock in stocks:
+        t = Thread(target=lambda q, arg1: q.put(crawler(arg1)), args=(que, stock))
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+    while not que.empty():
+        prices.append(que.get())
+    return prices
 
 
-current_price_fetcher(["GOOG", "AAPL", "AMC"])
+print(
+    current_price_fetcher(
+        ["GOOG", "AAPL", "AMC", "DDOG", "TSLA", "ABNB", "SEAC", "HOFV"]
+    )
+)
