@@ -41,10 +41,10 @@ def current_price_fetcher(stocks):
         t = Thread(target=lambda q, arg1: q.put(crawler(arg1)), args=(que, stock))
         t.start()
         threads.append(t)
-    for t in threads:
-        t.join()
     while len(prices) != len(stocks):
         prices.append(que.get())
+    for t in threads:
+        t.join()
     return prices
 
 

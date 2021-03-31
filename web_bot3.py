@@ -34,17 +34,9 @@ def current_price_fetcher(stocks):
     Input: A list of stocks
     Output: A list of stocks' current prices (Integer)
     """
-    threads = []
     prices = []
-    que = queue.Queue()
     for stock in stocks:
-        t = Thread(target=lambda q, arg1: q.put(crawler(arg1)), args=(que, stock))
-        t.start()
-        threads.append(t)
-    for t in threads:
-        t.join()
-    while len(prices) != len(stocks):
-        prices.append(que.get())
+        prices.append(crawler(stock))
     return prices
 
 
