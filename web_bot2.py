@@ -20,8 +20,7 @@ def crawler(symbol):
         print("Request exception: ", e)
 
     soup = BeautifulSoup(page.content, "lxml")
-    quote_info = soup.find("div", attrs={"id": "quote-header-info"})
-    price = quote_info.find(
+    price = soup.find(
         "span", {"class": "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}
     ).text
     price = price.replace(",", "")
